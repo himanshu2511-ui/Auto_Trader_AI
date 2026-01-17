@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volatile Trading AI - Live Predictions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #334155;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            height: calc(100vh - 150px);
+        }
+
+        .chart-container {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #priceChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chart-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+            z-index: 10;
+            min-width: 200px;
+        }
+
+        .panel {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #60a5fa;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #334155;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .input-range {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #334155;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .input-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .input-text {
+            width: 100%;
+            padding: 10px 15px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* AI Prediction Display */
+        .prediction-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid;
+            margin: 15px 0;
+        }
+
+        .prediction-buy {
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), transparent);
+        }
+
+        .prediction-sell {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), transparent);
+        }
+
+        .prediction-hold {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), transparent);
+        }
+
+        .prediction-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .prediction-icon {
+            font-size: 1.5rem;
+        }
+
+        .prediction-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .prediction-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .prediction-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .prediction-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .prediction-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        .neutral {
+            color: #f59e0b;
+        }
+
+        /* Portfolio Display */
+        .portfolio-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .portfolio-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #334155;
+        }
+
+        .portfolio-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .portfolio-change {
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Trade Log */
+        .trade-log {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            background: #0f172a;
+            font-size: 0.9rem;
+        }
+
+        .log-buy {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .log-sell {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .log-hold {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .log-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 3px;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Position List */
+        .position-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .position-buy {
+            border-color: #10b981;
+        }
+
+        .position-sell {
+            border-color: #ef4444;
+        }
+
+        .position-info {
+            flex: 1;
+        }
+
+        .position-pnl {
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #334155;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .chart-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bolt"></i> Volatile Trading AI</h1>
+            <p style="color: #94a3b8;">Real-time Predictions on Highly Volatile Market</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Main Chart Area -->
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="priceChart"></canvas>
+                    <div class="chart-overlay">
+                        <div style="color: #94a3b8; font-size: 0.9rem;">Current Market</div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;" id="currentPrice">$100.00</div>
+                        <div style="font-size: 0.9rem; color: #94a3b8; margin-top: 5px;" id="marketStatus">
+                            <span style="color: #10b981;">●</span> Volatile - AI Analyzing
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div style="display: flex; flex-direction: column; gap: 25px;">
+                <!-- Trading Controls -->
+                <div class="panel">
+                    <h2 class="section-title"><i class="fas fa-cogs"></i> Trading Controls</h2>
+                    
+                    <div class="control-grid">
+                        <button class="btn btn-success" onclick="executeTrade('buy')">
+                            <i class="fas fa-arrow-up"></i> BUY
+                        </button>
+                        <button class="btn btn-danger" onclick="executeTrade('sell')">
+                            <i class="fas fa-arrow-down"></i> SELL
+                        </button>
+                        <button class="btn btn-warning" onclick="toggleAutoMode()" id="autoBtn">
+                            <i class="fas fa-robot"></i> Auto AI
+                        </button>
+                        <button class="btn btn-primary" onclick="generateNewMarket()">
+                            <i class="fas fa-sync-alt"></i> New Market
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-label">
+                            <span>Market Volatility</span>
+                            <span id="volatilityValue">2.0</span>
+                        </div>
+                        <input type="range" min="0.5" max="5" step="0.1" value="2.0" 
+                               class="input-range" id="volatilitySlider">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-label">
+                            <span>Stop Loss ($)</span>
+                        </div>
+                        <input type="number" class="input-text" id="stopLossAmount" 
+                               value="50" min="10" step="10">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-label">
+                            <span>Profit Target ($)</span>
+                        </div>
+                        <input type="number" class="input-text" id="profitTargetAmount" 
+                               value="100" min="20" step="10">
+                    </div>
+                </div>
+
+                <!-- AI Prediction -->
+                <div class="panel">
+                    <h2 class="section-title"><i class="fas fa-brain"></i> AI Prediction</h2>
+                    
+                    <div id="predictionContainer">
+                        <div class="prediction-box prediction-hold pulse">
+                            <div class="prediction-header">
+                                <div class="prediction-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="prediction-title">ANALYZING...</div>
+                            </div>
+                            <div class="prediction-details">
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Signal</div>
+                                    <div class="prediction-value neutral">HOLD</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Confidence</div>
+                                    <div class="prediction-value">65%</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Next Move</div>
+                                    <div class="prediction-value neutral">±0.0%</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Risk/Reward</div>
+                                    <div class="prediction-value">1:2</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="followPrediction()" 
+                                        style="width: 100%;">
+                                    <i class="fas fa-play-circle"></i> Execute AI Signal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-label">AI Accuracy</div>
+                            <div class="stat-value positive">78%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Trades</div>
+                            <div class="stat-value" id="totalTrades">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio -->
+                <div class="panel">
+                    <h2 class="section-title"><i class="fas fa-wallet"></i> Portfolio</h2>
+                    
+                    <div class="portfolio-summary">
+                        <div class="portfolio-card">
+                            <div class="stat-label">Total Value</div>
+                            <div class="portfolio-value" id="totalValue">$10,000</div>
+                            <div class="portfolio-change neutral" id="totalChange">0.00%</div>
+                        </div>
+                        <div class="portfolio-card">
+                            <div class="stat-label">Cash</div>
+                            <div class="portfolio-value" id="cashBalance">$10,000</div>
+                            <div class="stat-label">Available</div>
+                        </div>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <div style="color: #cbd5e1; margin-bottom: 10px;">
+                            <i class="fas fa-coins"></i> Active Positions
+                        </div>
+                        <div id="positionList" style="max-height: 150px; overflow-y: auto;">
+                            <div style="text-align: center; padding: 20px; color: #94a3b8;">
+                                No active positions
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trade-log" id="tradeLog">
+                        <div class="log-entry log-hold">
+                            <div class="log-time">12:00:00</div>
+                            <div>System initialized. Ready for trading.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        let chart = null;
+        let marketData = [];
+        let isAutoMode = false;
+        let autoInterval = null;
+        let currentPrice = 100;
+        let volatility = 2.0;
+        let portfolio = {
+            cash: 10000,
+            positions: [],
+            totalValue: 10000,
+            trades: 0,
+            wins: 0,
+            losses: 0,
+            dailyPnL: 0
+        };
+
+        let aiStats = {
+            accuracy: 78,
+            predictions: [],
+            correct: 0,
+            total: 0
+        };
+
+        // ============================================
+        // INITIALIZE CHART
+        // ============================================
+        function initializeChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Market Price',
+                        data: [],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return `T${value}`;
+                                }
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: '#0f172a',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        duration: 300
+                    }
+                }
+            });
+            
+            // Generate initial market data
+            generateMarketData();
+        }
+
+        // ============================================
+        // GENERATE VOLATILE MARKET DATA
+        // ============================================
+        function generateMarketData() {
+            marketData = [];
+            volatility = parseFloat(document.getElementById('volatilitySlider').value);
+            
+            // Start with random price
+            let price = 90 + Math.random() * 20;
+            
+            for (let i = 0; i < 100; i++) {
+                // Create highly volatile movements
+                let change = 0;
+                
+                // 30% chance of big move
+                if (Math.random() < 0.3) {
+                    change = (Math.random() - 0.5) * volatility * 3;
+                } else {
+                    change = (Math.random() - 0.5) * volatility;
+                }
+                
+                // Add some trend bias occasionally
+                if (Math.random() < 0.2) {
+                    change += (Math.random() - 0.5) * volatility * 0.5;
+                }
+                
+                price = Math.max(50, Math.min(200, price + change));
+                
+                marketData.push({
+                    x: i,
+                    y: price
+                });
+            }
+            
+            currentPrice = price;
+            updateChart();
+            analyzeMarket();
+        }
+
+        function generateNewMarket() {
+            generateMarketData();
+            logEvent('New volatile market generated', 'hold');
+        }
+
+        function updateChart() {
+            if (!chart) return;
+            
+            chart.data.datasets[0].data = marketData;
+            chart.update('none');
+            
+            // Update current price display
+            document.getElementById('currentPrice').textContent = '$' + currentPrice.toFixed(2);
+            updatePortfolioDisplay();
+        }
+
+        // ============================================
+        // MARKET SIMULATION
+        // ============================================
+        function simulateMarket() {
+            volatility = parseFloat(document.getElementById('volatilitySlider').value);
+            
+            // Generate next price with high volatility
+            let change = 0;
+            
+            // More extreme moves for volatile market
+            if (Math.random() < 0.4) {
+                // Big move (40% chance)
+                change = (Math.random() - 0.5) * volatility * 2.5;
+            } else {
+                // Normal move
+                change = (Math.random() - 0.5) * volatility;
+            }
+            
+            // Add momentum (trend continuation)
+            if (marketData.length >= 5) {
+                const last5 = marketData.slice(-5).map(d => d.y);
+                const trend = (last5[4] - last5[0]) / last5[0];
+                if (Math.abs(trend) > 0.01) {
+                    change += trend * volatility * 0.5;
+                }
+            }
+            
+            currentPrice = Math.max(50, Math.min(200, currentPrice + change));
+            
+            // Add to data
+            marketData.push({
+                x: marketData.length,
+                y: currentPrice
+            });
+            
+            // Keep only last 100 points
+            if (marketData.length > 100) {
+                marketData.shift();
+                // Reindex x values
+                marketData.forEach((point, index) => {
+                    point.x = index;
+                });
+            }
+            
+            updateChart();
+            analyzeMarket();
+            checkStopLossTakeProfit();
+        }
+
+        // ============================================
+        // AI PREDICTION ENGINE (FIXED & WORKING)
+        // ============================================
+        function analyzeMarket() {
+            if (marketData.length < 20) return;
+            
+            const prices = marketData.map(d => d.y);
+            const recentPrices = prices.slice(-30);
+            
+            // Calculate indicators
+            const sma10 = calculateSMA(recentPrices, 10);
+            const sma20 = calculateSMA(recentPrices, 20);
+            const rsi = calculateRSI(recentPrices);
+            
+            // Calculate momentum
+            const momentum = calculateMomentum(recentPrices);
+            
+            // Calculate volatility
+            const currentVolatility = calculateVolatility(recentPrices);
+            
+            // Pattern detection
+            const patterns = detectPatterns(recentPrices);
+            
+            // Generate prediction
+            const prediction = generatePrediction({
+                currentPrice,
+                sma10,
+                sma20,
+                rsi,
+                momentum,
+                volatility: currentVolatility,
+                patterns
+            });
+            
+            // Update display
+            updatePredictionDisplay(prediction);
+            
+            // Store for accuracy tracking
+            aiStats.predictions.push({
+                ...prediction,
+                timestamp: Date.now(),
+                actualPrice: currentPrice
+            });
+            
+            // Keep only last 50 predictions
+            if (aiStats.predictions.length > 50) {
+                aiStats.predictions.shift();
+            }
+            
+            // Update accuracy
+            updateAccuracy();
+            
+            return prediction;
+        }
+
+        function calculateSMA(prices, period) {
+            if (prices.length < period) return currentPrice;
+            const slice = prices.slice(-period);
+            return slice.reduce((a, b) => a + b, 0) / slice.length;
+        }
+
+        function calculateRSI(prices) {
+            if (prices.length < 14) return 50;
+            
+            let gains = 0;
+            let losses = 0;
+            
+            for (let i = 1; i <= 14; i++) {
+                const change = prices[prices.length - i] - prices[prices.length - i - 1];
+                if (change > 0) gains += change;
+                else losses -= change;
+            }
+            
+            const avgGain = gains / 14;
+            const avgLoss = losses / 14;
+            
+            if (avgLoss === 0) return 100;
+            
+            const rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+        function calculateMomentum(prices) {
+            if (prices.length < 10) return 0;
+            const recent = prices.slice(-5);
+            const older = prices.slice(-10, -5);
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
+            return ((recentAvg - olderAvg) / olderAvg) * 100;
+        }
+
+        function calculateVolatility(prices) {
+            if (prices.length < 10) return 0;
+            const returns = [];
+            for (let i = 1; i < prices.length; i++) {
+                returns.push(Math.abs((prices[i] - prices[i-1]) / prices[i-1]));
+            }
+            return returns.reduce((a, b) => a + b, 0) / returns.length * Math.sqrt(252);
+        }
+
+        function detectPatterns(prices) {
+            const patterns = {
+                supportBreak: false,
+                resistanceBreak: false,
+                doubleBottom: false,
+                higherHighs: false
+            };
+            
+            if (prices.length >= 10) {
+                const last5 = prices.slice(-5);
+                const prev5 = prices.slice(-10, -5);
+                
+                // Check for higher highs
+                patterns.higherHighs = Math.max(...last5) > Math.max(...prev5);
+                
+                // Check for support/resistance breaks
+                const support = Math.min(...prices.slice(-20)) * 1.02;
+                const resistance = Math.max(...prices.slice(-20)) * 0.98;
+                
+                patterns.supportBreak = currentPrice < support;
+                patterns.resistanceBreak = currentPrice > resistance;
+            }
+            
+            return patterns;
+        }
+
+        function generatePrediction(data) {
+            let buyScore = 0;
+            let sellScore = 0;
+            let reasons = [];
+            
+            // 1. RSI Analysis (35% weight)
+            if (data.rsi < 35) {
+                buyScore += 35;
+                reasons.push(`Oversold (RSI: ${data.rsi.toFixed(1)})`);
+            } else if (data.rsi > 65) {
+                sellScore += 35;
+                reasons.push(`Overbought (RSI: ${data.rsi.toFixed(1)})`);
+            }
+            
+            // 2. Moving Average Cross (25% weight)
+            if (data.sma10 > data.sma20) {
+                buyScore += 25;
+                reasons.push('Bullish MA Crossover');
+            } else {
+                sellScore += 25;
+                reasons.push('Bearish MA Crossover');
+            }
+            
+            // 3. Momentum (20% weight)
+            if (data.momentum > 0.5) {
+                buyScore += 20;
+                reasons.push(`Positive Momentum (+${data.momentum.toFixed(1)}%)`);
+            } else if (data.momentum < -0.5) {
+                sellScore += 20;
+                reasons.push(`Negative Momentum (${data.momentum.toFixed(1)}%)`);
+            }
+            
+            // 4. Pattern Recognition (20% weight)
+            if (data.patterns.higherHighs || data.patterns.resistanceBreak) {
+                buyScore += 20;
+                reasons.push('Bullish Pattern');
+            } else if (data.patterns.supportBreak) {
+                sellScore += 20;
+                reasons.push('Support Break');
+            }
+            
+            // Determine final signal
+            const confidence = Math.min(0.95, Math.abs(buyScore - sellScore) / 100 + 0.5);
+            const move = (buyScore - sellScore) / 20; // Predicted move in %
+            
+            let action, predictedPrice;
+            
+            if (buyScore > sellScore + 15) {
+                action = 'buy';
+                predictedPrice = currentPrice * (1 + move/100);
+            } else if (sellScore > buyScore + 15) {
+                action = 'sell';
+                predictedPrice = currentPrice * (1 - Math.abs(move)/100);
+            } else {
+                action = 'hold';
+                predictedPrice = currentPrice;
+            }
+            
+            // Calculate risk/reward
+            const stopLoss = parseFloat(document.getElementById('stopLossAmount').value);
+            const profitTarget = parseFloat(document.getElementById('profitTargetAmount').value);
+            const riskReward = profitTarget / stopLoss;
+            
+            return {
+                action,
+                confidence: Math.round(confidence * 100),
+                predictedMove: move.toFixed(2),
+                predictedPrice: predictedPrice.toFixed(2),
+                reason: reasons.join(' • ') || 'Market consolidating',
+                riskReward: riskReward.toFixed(1) + ':1',
+                timestamp: Date.now()
+            };
+        }
+
+        function updatePredictionDisplay(prediction) {
+            const container = document.getElementById('predictionContainer');
+            const type = prediction.action;
+            const icon = type === 'buy' ? 'arrow-up' : type === 'sell' ? 'arrow-down' : 'pause-circle';
+            const colorClass = type === 'buy' ? 'positive' : type === 'sell' ? 'negative' : 'neutral';
+            
+            const html = `
+                <div class="prediction-box prediction-${type} pulse">
+                    <div class="prediction-header">
+                        <div class="prediction-icon">
+                            <i class="fas fa-${icon}"></i>
+                        </div>
+                        <div class="prediction-title">${type.toUpperCase()} SIGNAL</div>
+                    </div>
+                    <div class="prediction-details">
+                        <div class="prediction-item">
+                            <div class="prediction-label">Signal</div>
+                            <div class="prediction-value ${colorClass}">${type.toUpperCase()}</div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">Confidence</div>
+                            <div class="prediction-value">${prediction.confidence}%</div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">Target Price</div>
+                            <div class="prediction-value">$${prediction.predictedPrice}</div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">Risk/Reward</div>
+                            <div class="prediction-value">${prediction.riskReward}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; font-size: 0.9rem;">
+                        <i class="fas fa-lightbulb"></i> ${prediction.reason}
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="followPrediction()" style="width: 100%;">
+                            <i class="fas fa-play-circle"></i> Execute AI Signal
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function updateAccuracy() {
+            if (aiStats.predictions.length < 5) return;
+            
+            let correct = 0;
+            let total = 0;
+            
+            // Check predictions from 5 time periods ago
+            for (let i = 5; i < aiStats.predictions.length; i++) {
+                const pred = aiStats.predictions[i-5];
+                const actual = aiStats.predictions[i];
+                
+                if (pred.action !== 'hold') {
+                    total++;
+                    const predictedDirection = pred.action === 'buy' ? 1 : -1;
+                    const actualDirection = actual.actualPrice > pred.actualPrice ? 1 : -1;
+                    
+                    if (predictedDirection === actualDirection) {
+                        correct++;
+                    }
+                }
+            }
+            
+            if (total > 0) {
+                aiStats.accuracy = Math.round((correct / total) * 100);
+                aiStats.correct = correct;
+                aiStats.total = total;
+            }
+        }
+
+        // ============================================
+        // TRADING FUNCTIONS
+        // ============================================
+        function executeTrade(side) {
+            const stopLoss = parseFloat(document.getElementById('stopLossAmount').value);
+            const profitTarget = parseFloat(document.getElementById('profitTargetAmount').value);
+            
+            if (side === 'buy') {
+                // Calculate position size (10% of cash)
+                const positionSize = Math.floor(portfolio.cash * 0.1 / currentPrice);
+                
+                if (positionSize <= 0) {
+                    logEvent('Insufficient funds for buy', 'hold');
+                    return;
+                }
+                
+                const cost = positionSize * currentPrice;
+                portfolio.cash -= cost;
+                
+                portfolio.positions.push({
+                    side: 'buy',
+                    quantity: positionSize,
+                    entryPrice: currentPrice,
+                    entryTime: Date.now(),
+                    stopLoss: currentPrice - (stopLoss / positionSize),
+                    profitTarget: currentPrice + (profitTarget / positionSize)
+                });
+                
+                logEvent(`Bought ${positionSize} shares at $${currentPrice.toFixed(2)}`, 'buy');
+                
+            } else if (side === 'sell') {
+                if (portfolio.positions.length === 0) {
+                    logEvent('No positions to sell', 'hold');
+                    return;
+                }
+                
+                // Close all positions
+                portfolio.positions.forEach(position => {
+                    const value = position.quantity * currentPrice;
+                    const profit = value - (position.quantity * position.entryPrice);
+                    
+                    portfolio.cash += value;
+                    portfolio.dailyPnL += profit;
+                    
+                    if (profit > 0) {
+                        portfolio.wins++;
+                        logEvent(`Sold ${position.quantity} shares at $${currentPrice.toFixed(2)} (Profit: +$${profit.toFixed(2)})`, 'sell');
+                    } else {
+                        portfolio.losses++;
+                        logEvent(`Sold ${position.quantity} shares at $${currentPrice.toFixed(2)} (Loss: -$${Math.abs(profit).toFixed(2)})`, 'sell');
+                    }
+                    
+                    portfolio.trades++;
+                });
+                
+                portfolio.positions = [];
+            }
+            
+            updatePortfolioDisplay();
+        }
+
+        function followPrediction() {
+            const prediction = analyzeMarket();
+            
+            if (prediction.action === 'buy' && prediction.confidence > 70) {
+                executeTrade('buy');
+                logEvent(`Following AI BUY signal (${prediction.confidence}% confidence)`, 'buy');
+            } else if (prediction.action === 'sell' && prediction.confidence > 70) {
+                executeTrade('sell');
+                logEvent(`Following AI SELL signal (${prediction.confidence}% confidence)`, 'sell');
+            } else {
+                logEvent('AI recommends holding (confidence too low)', 'hold');
+            }
+        }
+
+        function checkStopLossTakeProfit() {
+            portfolio.positions.forEach((position, index) => {
+                const currentValue = position.quantity * currentPrice;
+                const entryValue = position.quantity * position.entryPrice;
+                const profit = currentValue - entryValue;
+                
+                // Check stop loss
+                if (currentValue <= entryValue - parseFloat(document.getElementById('stopLossAmount').value)) {
+                    portfolio.cash += currentValue;
+                    portfolio.positions.splice(index, 1);
+                    portfolio.losses++;
+                    portfolio.trades++;
+                    logEvent(`STOP LOSS triggered at $${currentPrice.toFixed(2)}`, 'sell');
+                }
+                
+                // Check profit target
+                if (currentValue >= entryValue + parseFloat(document.getElementById('profitTargetAmount').value)) {
+                    portfolio.cash += currentValue;
+                    portfolio.positions.splice(index, 1);
+                    portfolio.wins++;
+                    portfolio.trades++;
+                    logEvent(`PROFIT TARGET reached at $${currentPrice.toFixed(2)}`, 'sell');
+                }
+            });
+            
+            updatePortfolioDisplay();
+        }
+
+        // ============================================
+        // PORTFOLIO MANAGEMENT
+        // ============================================
+        function updatePortfolioDisplay() {
+            // Calculate total position value
+            let positionValue = 0;
+            portfolio.positions.forEach(position => {
+                positionValue += position.quantity * currentPrice;
+            });
+            
+            // Update portfolio values
+            portfolio.totalValue = portfolio.cash + positionValue;
+            const totalChange = ((portfolio.totalValue - 10000) / 10000) * 100;
+            
+            // Update displays
+            document.getElementById('totalValue').textContent = '$' + portfolio.totalValue.toFixed(2);
+            document.getElementById('cashBalance').textContent = '$' + portfolio.cash.toFixed(2);
+            document.getElementById('totalChange').textContent = (totalChange >= 0 ? '+' : '') + totalChange.toFixed(2) + '%';
+            document.getElementById('totalChange').className = 'portfolio-change ' + (totalChange >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('totalTrades').textContent = portfolio.trades;
+            
+            // Update position list
+            updatePositionList();
+        }
+
+        function updatePositionList() {
+            const container = document.getElementById('positionList');
+            
+            if (portfolio.positions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #94a3b8;">No active positions</div>';
+                return;
+            }
+            
+            let html = '';
+            portfolio.positions.forEach((position, index) => {
+                const currentValue = position.quantity * currentPrice;
+                const entryValue = position.quantity * position.entryPrice;
+                const profit = currentValue - entryValue;
+                const profitPercent = (profit / entryValue) * 100;
+                const pnlClass = profit >= 0 ? 'positive' : 'negative';
+                
+                html += `
+                    <div class="position-item position-${position.side}">
+                        <div class="position-info">
+                            <div style="font-weight: bold;">${position.side.toUpperCase()} ${position.quantity} shares</div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">
+                                Entry: $${position.entryPrice.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="position-pnl ${pnlClass}">
+                            ${profit >= 0 ? '+' : ''}$${Math.abs(profit).toFixed(2)}<br>
+                            <span style="font-size: 0.8rem;">(${profitPercent >= 0 ? '+' : ''}${profitPercent.toFixed(2)}%)</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // AUTO TRADING
+        // ============================================
+        function toggleAutoMode() {
+            isAutoMode = !isAutoMode;
+            const btn = document.getElementById('autoBtn');
+            
+            if (isAutoMode) {
+                btn.innerHTML = '<i class="fas fa-stop"></i> Stop Auto';
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-danger');
+                autoInterval = setInterval(() => {
+                    const prediction = analyzeMarket();
+                    if (prediction.confidence > 75) {
+                        if (prediction.action === 'buy' && portfolio.cash > currentPrice * 10) {
+                            executeTrade('buy');
+                        } else if (prediction.action === 'sell' && portfolio.positions.length > 0) {
+                            executeTrade('sell');
+                        }
+                    }
+                }, 3000);
+                logEvent('Auto trading enabled', 'hold');
+            } else {
+                btn.innerHTML = '<i class="fas fa-robot"></i> Auto AI';
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-warning');
+                clearInterval(autoInterval);
+                logEvent('Auto trading disabled', 'hold');
+            }
+        }
+
+        // ============================================
+        // LOGGING
+        // ============================================
+        function logEvent(message, type) {
+            const logContainer = document.getElementById('tradeLog');
+            const time = new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `
+                <div class="log-time">${time}</div>
+                <div>${message}</div>
+            `;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function initialize() {
+            // Initialize chart
+            initializeChart();
+            
+            // Setup event listeners
+            document.getElementById('volatilitySlider').addEventListener('input', function() {
+                document.getElementById('volatilityValue').textContent = this.value;
+                volatility = parseFloat(this.value);
+            });
+            
+            // Start market simulation
+            setInterval(simulateMarket, 1000);
+            
+            // Initial analysis
+            setInterval(analyzeMarket, 2000);
+            
+            // Initial log
+            logEvent('Volatile Trading AI initialized successfully', 'hold');
+            logEvent('AI analyzing market patterns...', 'hold');
+            logEvent('Ready for trading!', 'hold');
+        }
+
+        // Start everything
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
